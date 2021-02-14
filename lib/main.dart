@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'question.dart';
+import 'quizBrain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 
 void main() => runApp(Quizzler());
 
@@ -36,15 +37,33 @@ class _QuizPageState extends State<QuizPage> {
 
   //List<bool> Answers = [false, true, false];
 
-  List<Question> questionBank = [
-    Question(q: 'You can lead a cow down stairs but not up stairs.', a: false),
-    Question(
-        q: 'Approximately one quarter of human bones are in the feet.',
-        a: true),
-    Question(q: 'A slug\'s blood is green.', a: false)
-  ];
+  QuizBrain quizbrain = QuizBrain();
 
-  int questionNumber = 0;
+  void checkAnswer(bool userPickedAnswer) {
+    bool correctAnswer = quizbrain.getQuestionAnswer();
+
+    setState(() {
+      if (quizbrain.isFinished() == true) {
+        Alert(context: context, title: "THE END !", desc: "Start Again").show();
+        quizbrain.reset();
+        scoreKeeper = [];
+      } else {
+        if (userPickedAnswer == correctAnswer) {
+          scoreKeeper.add(Icon(
+            Icons.check,
+            color: Colors.green,
+          ));
+        } else {
+          scoreKeeper.add(Icon(
+            Icons.close,
+            color: Colors.red,
+          ));
+        }
+        quizbrain.nextQuestion();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -57,7 +76,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                questionBank[questionNumber].questionText,
+                quizbrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -81,22 +100,12 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                bool correctAnswer =
-                    questionBank[questionNumber].questionAnswer;
-                setState(() {
-                  questionNumber++;
-                  if (correctAnswer == true) {
-                    scoreKeeper.add(
-                      Icon(
-                        Icons.check,
-                        color: Colors.green,
-                      ),
-                    );
-                  }
-                });
-                if (questionNumber > 2) {
-                  questionNumber = 0;
-                }
+                //we should not be allowed to change the answer of a Ques in main
+                // Hence we make quizbrain private
+                // This is Encapsulation
+                // Main will do its job and so will quizBrain leading to no discrepancy
+                //quizbrain.questionBank[questionNumber].questionAnswer = true;
+                checkAnswer(true);
               },
             ),
           ),
@@ -114,23 +123,7 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
-                bool correctAnswer =
-                    questionBank[questionNumber].questionAnswer;
-
-                setState(() {
-                  questionNumber++;
-                  if (correctAnswer == false) {
-                    scoreKeeper.add(
-                      Icon(
-                        Icons.close,
-                        color: Colors.red,
-                      ),
-                    );
-                  }
-                });
-                if (questionNumber > 2) {
-                  questionNumber = 0;
-                }
+                checkAnswer(false);
               },
             ),
           ),
